@@ -3,8 +3,10 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from DataBase.dbIndex import DB
-
+from classes.productClass import Product, crudOperation
 db = DB()
+
+prodObj = Product()
 
 def ganerateTextForOrder(order):
     order_from = 'Телеграм-бот магазин "Electronics_Store"'
@@ -13,10 +15,11 @@ def ganerateTextForOrder(order):
 
     idsProdFromBasket = 'id = ' + order['idsProd'].replace(',', ' or id=')
     counts = order['countProd'].split(',')
-    products = db.get_Product_by_all_id(idsProdFromBasket)
+    products = prodObj.SQLQuery(crudOperation.Select, '*', idsProdFromBasket)
+
 
     email_text = """
-    <html lang="en">
+    <html lang='en'>
     <head>
         <meta charset="UTF-8">
         <title>Title</title>
@@ -99,26 +102,27 @@ def ganerateTextForOrder(order):
         </style>
     </head>
     <body>
-    
+    <h3>ВАШЕ ЗАМОВЛЕННЯ З МАГАЗИНУ ЕЛЕКТРОНІКИ</h3>
     <table>
         <tr>
             <th>Назва товару</th>
             <th>Кількість</th>
             <th>Ціна</th>
         </tr>
-    </table>
     """
 
 
     c = 0
     for item in products:
         email_text += f'<tr> ' \
-                      f'    <td>{item["Name"]}</td>' \
+                      f'    <td>{item.Name}</td>' \
                       f'    <td>{counts[c]}</td>' \
-                      f'    <td>{item["Price"]}</td>' \
+                      f'    <td>{item.Price}</td>' \
                       f'</tr>'
         c+=1
-    email_text += f'</table> </body> </html>'
+    email_text += f'<tr><td></td><td><b>Сума замовлення: </b></td><td><b>{order["SumOrder"]}</b></td></tr>' \
+                  f'</table></body> </html>'
+
 
 
     message = MIMEMultipart()
